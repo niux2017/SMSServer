@@ -1,0 +1,68 @@
+USE [DBLIS50_TEST]
+GO
+
+/****** Object:  Table [dbo].[CYFSY_SMS_TMZT]    Script Date: 06/02/2018 23:28:26 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[CYFSY_SMS_TMZT](
+	[Phone] [varchar](20) NOT NULL,
+	[DrawDate] [date] NOT NULL,
+	[DrawCount] [int] NOT NULL,
+	[ReportCount] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+
+USE [DBLIS50_TEST]
+GO
+
+/****** Object:  Table [dbo].[CYFSY_SMS_TMZT]    Script Date: 06/02/2018 23:28:26 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[CYFSY_SMS_FSJL](
+	[id] int NOT NULL identity(1,1) PRIMARY KEY,
+	[Phone] [varchar](20) NOT NULL,
+	[DrawDate] [date] NOT NULL,
+	[FSZT] [int] NOT NULL,
+	[FSSJ] [datetime]NULL
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+
+
+----------------------------------------Ë÷Òý-----------------------------------------------
+USE [DBLIS50_TEST]
+GO
+
+/****** Object:  Index [idx_phone_and_drawdate]    Script Date: 06/06/2018 12:54:43 ******/
+CREATE NONCLUSTERED INDEX [idx_phone_and_drawdate] ON [dbo].[CYFSY_SMS_TMZT] 
+(
+	[Phone] ASC,
+	[DrawDate] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+GO
+
+
+
