@@ -17,6 +17,10 @@ class CErrorLog {
     
     public  static function errorLogFile($errorInfo)
     {
+        $dir = dirname(__FILE__)."/../log";
+        if (!file_exists($dir)){ 
+            mkdir ($dir,0777,true);
+        }
         $date = date('Y-m-d');
         $time = date('Y-m-d H:i:s'); 
         error_log("$time $errorInfo\r\n", 3, dirname(__FILE__)."/../log/error$date.log");          

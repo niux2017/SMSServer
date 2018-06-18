@@ -1,77 +1,100 @@
 <?php
-/**********************************************************
-*名称：CSmsSendWork 短信发送线程
-*作者：NIUX
-*功能：
-1、接收dbquery线程丢过来的数据对象
-2、绑定参数，调用SOAP接口发送短信
-*创建时间：20180611
-***********************************************************/
-require_once (dirname(__FILE__)."/../commom/datamanager.php"); 
-require_once ("threadbase.php");
-require_once (dirname(__FILE__)."/../constants/constants.php");
-require_once (dirname(__FILE__)."/../common/ErrorLog.php");
 
+/* * ********************************************************
+ * 名称：CSmsSendWork 短信发送线程
+ * 作者：NIUX
+ * 功能：
+  1、接收dbquery线程丢过来的数据对象
+  2、绑定参数，调用SOAP接口发送短信
+ * 创建时间：20180611
+ * ********************************************************* */
+require_once (dirname(__FILE__)."/../Common/datamanager.php");
+require_once ("threadbase.php");
+require_once ("constants.php");
+require_once (dirname(__FILE__) . "/../common/ErrorLog.php");
 class CSmsSendWork extends CBaseWork {
+
     private $soap_client;
     private $xml;
+
     public function __construct() {
         $this->soap_client = new SoapClient(null, array(
-      'location' => "http://172.30.0.81/WebService1.asmx",
-      'uri'      => "http://172.30.0.81/WebService1.asmx",
-      'trace'    => 1 ));
+            'location' => "http://172.30.0.81/WebService1.asmx",
+            'uri' => "http://172.30.0.81/WebService1.asmx",
+            'trace' => 1));
     }
-    
-    public function run()
-    {
-        try
-        {
+
+    public function run() {
+        try {
             global $g_smsManger;
-            while(true):
+            global $g_dbQueryWork;
+            while (true):
                 $ret = $g_smsManger->shiftArrayData($id, $array);
-                if(!$ret):
-                    break;//队列空退出循环
+                if (!$ret):
+                    break; //队列空退出循环
                 endif;
                 $ret = $this->sendSMS($array["phone"], $array["drawdate"]);
                 //发送成功，从队列中移除该任务
-                if($ret):
+                if ($ret):
                     //发送成功后, 将消息存放在报告查询队列中，并改写数据库状态
                     $g_dbQueryWork->updateSMSSendStat($id, SMS_SEND_RESULT_SUCCESS);
-                else:                   
+                else:
                     //$g_remoteFileManager->pushArrayData($this->barcode, $filesArray);	//若发送失败，丢回队列，等待下次上传
                     $g_dbQueryWork->updateSMSSendStat($id, SMS_SEND_RESULT_FAILED);
                 endif;
-            endwhile;				
+            endwhile;
+        } catch (Exception $e) {
+            print_r("Error message: " . $e->getMessage());
         }
-        catch(Exception $e)
+    }
+
+    /*     * ********************************************************
+     * 名称：start
+     * 作者：NIUX
+     * 功能：初始化函数，初始化XML文件等
+     * 参数：无
+     * 创建时间：20180611
+     * ********************************************************* */
+
+    public function start() {
+
+        $this->xml = simplexml_load_file(dirname(__FILE__)."/sms.xml");
+    }
+
+    /*     * ********************************************************
+     * 名称：sendSMS
+     * 作者：NIUX
+     * 功能：调用SOAP接口，发送通知短信
+     * 参数：$phone 手机号, $drawdate 抽血日期
+     * 创建时间：20180611
+     * ********************************************************* */
+
+    public function sendSMS($phone, $drawdate) {
+
+        if(null == $this->xml || null == $this->soap_client)
         {
-           print_r("Error message: ".$e->getMessage());
+            return false;
         }
+        $strDate =  $drawdate->format("Y-m-d H:i:s");
+        $this->xml->phone = $phone;
+        $this->xml->content = "亲，您于 $strDate 在附三院的检验报告已发出，请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
+        $xmlstr = $this->xml->asXML();
+        if (FALSE != $xmlstr):
+            $rtStr = $this->soap_client->dxptsubmit($xmlstr);
+            $rtStr = $this->soap_client->_soapCall("dxptsubmit", $xmlstr);
+            $rtXML = new SimpleXMLElement($rtStr);
+            if ($rtXML->issuccess)
+                return TRUE;
+            CErrorLog::errorLogFile("[$rtXML->response->result]:<$rtXML->tsxx >");
+        endif;
+
+        return false;
     }
-/**********************************************************
-*名称：start
-*作者：NIUX
-*功能：初始化函数，初始化XML文件等
-*参数：无
-*创建时间：20180611
-***********************************************************/	    
-      public function start(){
-        
-        $this->xml;
-    } 
-/**********************************************************
-*名称：sendSMS
-*作者：NIUX
-*功能：调用SOAP接口，发送通知短信
-*参数：$phone 手机号, $drawdate 抽血日期
-*创建时间：20180611
-***********************************************************/	
-    public function sendSMS($phone, $drawdate){
-        
-        $this->xml;
-        $this->soap_client->dxptsubmit("");
-    }
- 
+
 }
 
+//$test = new CSmsSendWork();
+//$test->start();
+//$test->sendSMS("13340397452", "2018年06月15日");
+//$test->_soapCall('Add',array(1000,2));
 ?>

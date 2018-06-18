@@ -6,8 +6,8 @@
 2、对数据库连接状态进行判断，数据库掉线时断线重连
 *创建时间：2018-03-31
 ***********************************************************/
-require_once (dirname(__FILE__)."/../commom/dbconn.php"); 
-require_once (dirname(__FILE__)."/../commom/datamanager.php"); 
+require_once (dirname(__FILE__)."/../common/dbconn.php"); 
+require_once (dirname(__FILE__)."/../common/datamanager.php"); 
 require_once ("threadbase.php");
 
 class CDbQueryWork extends CBaseWork {
@@ -56,7 +56,7 @@ class CDbQueryWork extends CBaseWork {
     {
         try
         {
-            $this->dbConn->execSQL("exec usp_cyfsy_sms_update_stat '$id','$stat'");
+            $this->dbConn->execSQL("exec usp_cyfsy_sms_update_stat $id,$stat");
         }
         catch(Exception $e)
         {
@@ -72,7 +72,7 @@ class CDbQueryWork extends CBaseWork {
 ***********************************************************/	
    public function start() {
        
-       $this->dbConn->initParam("172.30.0.35\LIS","SMS_AUTO_NOTIFY","SMS_AUTO_NOTIFY", "DBLIS50");
+       $this->dbConn->initParam("172.30.0.35\LIS","SMS_AUTO_NOTIFY","SMS_AUTO_NOTIFY", "DBLIS50_TEST");
        $this->dbConn->connDB();
        var_dump($this->dbConn);
        $this->queryNotSentSMS();
@@ -91,11 +91,16 @@ class CDbQueryWork extends CBaseWork {
         global $g_smsManger;
         //获取前一天的时间
         //xdebug_start_trace();
-        $barcodeList = array();
-        $ret = $this->dbConn->querySQL("exec usp_cyfsy_query_dfsdx", $this->maxid);
+        $phoneList = array();
+        $ret = $this->dbConn->querySQL("exec usp_cyfsy_query_dfsdx $this->maxid", $phoneList);
 	if($ret):
-            foreach ($barcodeList as $row):
-                $g_smsManger->pushArrayData($row["id"], array([0]=>$row['Barcode'], [1]=>$row['StudyType']));
+            foreach ($phoneList as $row):
+                $phone = array('phone'=>$row['phone'], 'drawdate'=>$row['drawdate']);
+                //号码存入全局队列
+                $g_smsManger->pushArrayData($row["id"], $phone);
+                if($row["id"] > $this->maxid):
+                    $this->maxid = $row["id"];//更新最大id值
+                endif;
             endforeach;
         endif;
     }	
