@@ -7,7 +7,7 @@
  */
 
 
-ini_set('soap.wsdl_cache_enabled','0');//鍏抽棴缂撳瓨
+ini_set('soap.wsdl_cache_enabled','0');//关闭缓存
 //$soap=new SoapClient('http://localhost:8080/TXMY/WebService/Service.php?wsdl');
 
 $client = new SoapClient(null, array(
@@ -26,5 +26,5 @@ $client = new SoapClient(null, array(
 //var_dump($client->getAIDesc("0000177249"));
 
 echo $client->getAIDesc("0000182231");
-//echo $client->_soapCall('Add',array(1000,2));//鎴栬�呰繖鏍疯皟鐢ㄤ篃鍙互
+//echo $client->_soapCall('Add',array(1000,2));//或者这样调用也可以
 ?>

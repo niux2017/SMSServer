@@ -1,13 +1,14 @@
 <?php
 
 /* * ********************************************************
- * åç§°ï¼šCSmsSendWork çŸ­ä¿¡å‘é€çº¿ç¨‹
- * ä½œè€…ï¼šNIUX
- * åŠŸèƒ½ï¼š
-  1ã€æŽ¥æ”¶dbqueryçº¿ç¨‹ä¸¢è¿‡æ¥çš„æ•°æ®å¯¹è±¡
-  2ã€ç»‘å®šå‚æ•°ï¼Œè°ƒç”¨SOAPæŽ¥å£å‘é€çŸ­ä¿¡
- * åˆ›å»ºæ—¶é—´ï¼š20180611
+ * Ãû³Æ£ºCSmsSendWork ¶ÌÐÅ·¢ËÍÏß³Ì
+ * ×÷Õß£ºNIUX
+ * ¹¦ÄÜ£º
+  1¡¢½ÓÊÕdbqueryÏß³Ì¶ª¹ýÀ´µÄÊý¾Ý¶ÔÏó
+  2¡¢°ó¶¨²ÎÊý£¬µ÷ÓÃSOAP½Ó¿Ú·¢ËÍ¶ÌÐÅ
+ * ´´½¨Ê±¼ä£º20180611
  * ********************************************************* */
+//exec('chcp 936'); 
 require_once (dirname(__FILE__)."/../Common/datamanager.php");
 require_once ("threadbase.php");
 require_once ("constants.php");
@@ -18,28 +19,21 @@ class CSmsSendWork extends CBaseWork {
     private $xml;
 
     public function __construct() {
-        $this->soap_client = new SoapClient(null, array(
-            'location' => "http://172.30.0.81/WebService1.asmx",
-            'uri' => "http://172.30.0.81/WebService1.asmx",
-            'trace' => 1));
+        
     }
 
     public function run() {
         try {
             global $g_smsManger;
             global $g_dbQueryWork;
-            while (true):
-                $ret = $g_smsManger->shiftArrayData($id, $array);
-                if (!$ret):
-                    break; //é˜Ÿåˆ—ç©ºé€€å‡ºå¾ªçŽ¯
-                endif;
+            while ($g_smsManger->shiftArrayData($id, $array)):          
                 $ret = $this->sendSMS($array["phone"], $array["drawdate"]);
-                //å‘é€æˆåŠŸï¼Œä»Žé˜Ÿåˆ—ä¸­ç§»é™¤è¯¥ä»»åŠ¡
+                //·¢ËÍ³É¹¦£¬´Ó¶ÓÁÐÖÐÒÆ³ý¸ÃÈÎÎñ
                 if ($ret):
-                    //å‘é€æˆåŠŸåŽ, å°†æ¶ˆæ¯å­˜æ”¾åœ¨æŠ¥å‘ŠæŸ¥è¯¢é˜Ÿåˆ—ä¸­ï¼Œå¹¶æ”¹å†™æ•°æ®åº“çŠ¶æ€
+                    //·¢ËÍ³É¹¦ºó, ½«ÏûÏ¢´æ·ÅÔÚ±¨¸æ²éÑ¯¶ÓÁÐÖÐ£¬²¢¸ÄÐ´Êý¾Ý¿â×´Ì¬
                     $g_dbQueryWork->updateSMSSendStat($id, SMS_SEND_RESULT_SUCCESS);
                 else:
-                    //$g_remoteFileManager->pushArrayData($this->barcode, $filesArray);	//è‹¥å‘é€å¤±è´¥ï¼Œä¸¢å›žé˜Ÿåˆ—ï¼Œç­‰å¾…ä¸‹æ¬¡ä¸Šä¼ 
+                    //$g_remoteFileManager->pushArrayData($this->barcode, $filesArray);	//Èô·¢ËÍÊ§°Ü£¬¶ª»Ø¶ÓÁÐ£¬µÈ´ýÏÂ´ÎÉÏ´«
                     $g_dbQueryWork->updateSMSSendStat($id, SMS_SEND_RESULT_FAILED);
                 endif;
             endwhile;
@@ -49,24 +43,25 @@ class CSmsSendWork extends CBaseWork {
     }
 
     /*     * ********************************************************
-     * åç§°ï¼šstart
-     * ä½œè€…ï¼šNIUX
-     * åŠŸèƒ½ï¼šåˆå§‹åŒ–å‡½æ•°ï¼Œåˆå§‹åŒ–XMLæ–‡ä»¶ç­‰
-     * å‚æ•°ï¼šæ— 
-     * åˆ›å»ºæ—¶é—´ï¼š20180611
+     * Ãû³Æ£ºstart
+     * ×÷Õß£ºNIUX
+     * ¹¦ÄÜ£º³õÊ¼»¯º¯Êý£¬³õÊ¼»¯XMLÎÄ¼þµÈ
+     * ²ÎÊý£ºÎÞ
+     * ´´½¨Ê±¼ä£º20180611
      * ********************************************************* */
 
     public function start() {
 
         $this->xml = simplexml_load_file(dirname(__FILE__)."/sms.xml");
+        $this->soap_client = new SoapClient("http://172.30.35.108/dxptfb/WebService1.asmx?wsdl");
     }
 
     /*     * ********************************************************
-     * åç§°ï¼šsendSMS
-     * ä½œè€…ï¼šNIUX
-     * åŠŸèƒ½ï¼šè°ƒç”¨SOAPæŽ¥å£ï¼Œå‘é€é€šçŸ¥çŸ­ä¿¡
-     * å‚æ•°ï¼š$phone æ‰‹æœºå·, $drawdate æŠ½è¡€æ—¥æœŸ
-     * åˆ›å»ºæ—¶é—´ï¼š20180611
+     * Ãû³Æ£ºsendSMS
+     * ×÷Õß£ºNIUX
+     * ¹¦ÄÜ£ºµ÷ÓÃSOAP½Ó¿Ú£¬·¢ËÍÍ¨Öª¶ÌÐÅ
+     * ²ÎÊý£º$phone ÊÖ»úºÅ, $drawdate ³éÑªÈÕÆÚ
+     * ´´½¨Ê±¼ä£º20180611
      * ********************************************************* */
 
     public function sendSMS($phone, $drawdate) {
@@ -75,13 +70,13 @@ class CSmsSendWork extends CBaseWork {
         {
             return false;
         }
-        $strDate =  $drawdate->format("Y-m-d H:i:s");
-        $this->xml->phone = $phone;
-        $this->xml->content = "äº²ï¼Œæ‚¨äºŽ $strDate åœ¨é™„ä¸‰é™¢çš„æ£€éªŒæŠ¥å‘Šå·²å‘å‡ºï¼Œè¯·å°½å¿«å‡­æŠ½è¡€å›žæ‰§å•ï¼Œåˆ°é—¨è¯ŠA1å±‚æ£€éªŒç§‘è‡ªåŠ©æœºä¸Šé¢†å–ï¼Œ è°¢è°¢ï¼";
+        $strDate =  $drawdate->format("Y-m-d");
+        $this->xml->phones = $phone;
+        $this->xml->content = "Ç×£¬ÄúÓÚ $strDate ÔÚ¸½ÈýÔºµÄ¼ìÑé±¨¸æÒÑ·¢³ö£¬Çë¾¡¿ìÆ¾³éÑª»ØÖ´µ¥£¬µ½ÃÅÕïA1²ã¼ìÑé¿Æ×ÔÖú»úÉÏÁìÈ¡£¬ Ð»Ð»£¡";
         $xmlstr = $this->xml->asXML();
+        var_dump($xmlstr);
         if (FALSE != $xmlstr):
-            $rtStr = $this->soap_client->dxptsubmit($xmlstr);
-            $rtStr = $this->soap_client->_soapCall("dxptsubmit", $xmlstr);
+            $rtStr = $this->soap_client->dxptsubmit($xmlstr);                          
             $rtXML = new SimpleXMLElement($rtStr);
             if ($rtXML->issuccess)
                 return TRUE;
@@ -95,6 +90,6 @@ class CSmsSendWork extends CBaseWork {
 
 //$test = new CSmsSendWork();
 //$test->start();
-//$test->sendSMS("13340397452", "2018å¹´06æœˆ15æ—¥");
+//$test->sendSMS("13340397452", "2018Äê06ÔÂ15ÈÕ");
 //$test->_soapCall('Add',array(1000,2));
 ?>

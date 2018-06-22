@@ -1,9 +1,9 @@
 <?php
-    //å¸¸é‡å®šä¹‰ä¸å…è®¸ä¿®æ”¹ï¼Œåªèƒ½å¢žåŠ 
-    //çŸ­ä¿¡å‘é€çŠ¶æ€
-    define ("SMS_SEND_RESULT_WAIT" ,'0');//ç­‰å¾…	
-    define ("SMS_SEND_RESULT_SUCCESS" ,'1');//æˆåŠŸ
-    define ("SMS_SEND_RESULT_FAILED" ,'2');//å¤±è´¥
+    //³£Á¿¶¨Òå²»ÔÊÐíÐÞ¸Ä£¬Ö»ÄÜÔö¼Ó
+    //¶ÌÐÅ·¢ËÍ×´Ì¬
+    define ("SMS_SEND_RESULT_WAIT" ,'0');//µÈ´ý	
+    define ("SMS_SEND_RESULT_SUCCESS" ,'1');//³É¹¦
+    define ("SMS_SEND_RESULT_FAILED" ,'2');//Ê§°Ü
 
 
 ?>

@@ -32,7 +32,7 @@ class CErrorLog {
          error_log($errorInfo, 1, "116696521@qq.com");       
     }
     
-    //å›è°ƒå‡½æ•°ï¼Œæ•è·é”™è¯¯ï¼Œ è¯¥é”™è¯¯å¯¼è‡´ç¨‹åºé€€å‡º
+    //»Øµ÷º¯Êı£¬²¶»ñ´íÎó£¬ ¸Ã´íÎóµ¼ÖÂ³ÌĞòÍË³ö
     public static function catch_error(){
         $error = error_get_last();
         if($error){
@@ -41,7 +41,7 @@ class CErrorLog {
         }
     }
     
-    //å›è°ƒå‡½æ•°ï¼Œå°†é”™è¯¯å½“æˆå¼‚å¸¸æŠ›å‡º 
+    //»Øµ÷º¯Êı£¬½«´íÎóµ±³ÉÒì³£Å×³ö 
     public static function throw_exception($type, $message, $file, $line){
         $ExString = "[Type] $type [File] $file [Line] $line [Message] $message"; 
         CErrorLog::errorLogFile($ExString);

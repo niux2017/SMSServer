@@ -35,7 +35,7 @@ class CDbConn
         return true;
     }
 
-    //è¿æ¥æ•°æ®åº“ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½
+    //Á¬½ÓÊı¾İ¿â ????????
     public function connDB()
     {
         try
@@ -51,17 +51,17 @@ class CDbConn
 
             if( $this->m_conn == false)
             {
-                throw new CDbException("æ•°æ®åº“è¿æ¥å¤±è´¥");
+                throw new CDbException("Êı¾İ¿âÁ¬½ÓÊ§°Ü");
             }
             else
             {
-                echo "æ•°æ®åº“è¿æ¥æˆåŠŸ";  
+                echo "Êı¾İ¿âÁ¬½Ó³É¹¦";  
             }
         }
         catch(CDbException $ex)
         {
             print_r($ex->toString());
-            CErrorLog::errorLogFile("æ•°æ®åº“è¿æ¥å¤±è´¥");            
+            CErrorLog::errorLogFile("Êı¾İ¿âÁ¬½ÓÊ§°Ü");            
             CErrorLog::errorLogFile($ex->toString());
         }
         catch(Exception $e)
@@ -72,14 +72,14 @@ class CDbConn
         return $this->m_conn == null? false: true;
     }
 
-//é€‰æ‹©æ•°æ®åº“
+//Ñ¡ÔñÊı¾İ¿â
     public function selectDB($dbName)
     {
 
 
     }
 
-//é‡è¿æ•°æ®åº“
+//ÖØÁ¬Êı¾İ¿â
     public function reconnDB()
     {
         try
@@ -96,7 +96,7 @@ class CDbConn
         catch(CDbException $ex)
         {
             print_r($ex->toString());
-            CErrorLog::errorLogFile("æ•°æ®åº“é‡è¿å¤±è´¥");
+            CErrorLog::errorLogFile("Êı¾İ¿âÖØÁ¬Ê§°Ü");
             CErrorLog::errorLogFile($ex->toString());
         }
         catch(Exception $e)
@@ -108,11 +108,11 @@ class CDbConn
         return true;
     }
 /**********************************************************
-*åç§°ï¼šquerySQL
-*ä½œè€…ï¼šNIUX
-*åŠŸèƒ½ï¼šæ‰§è¡Œæœ‰è¿”å›çš„æ•°æ®åº“æŸ¥è¯¢
-*å…¥å‚ï¼š$querySQL æŸ¥è¯¢sql, $rows dataset
-*åˆ›å»ºæ—¶é—´ï¼š2018-03-31
+*Ãû³Æ£ºquerySQL
+*×÷Õß£ºNIUX
+*¹¦ÄÜ£ºÖ´ĞĞÓĞ·µ»ØµÄÊı¾İ¿â²éÑ¯
+*Èë²Î£º$querySQL ²éÑ¯sql, $rows dataset
+*´´½¨Ê±¼ä£º2018-03-31
 ***********************************************************/
     public function querySQL($querySQL, &$rows)
     {
@@ -122,13 +122,13 @@ class CDbConn
             var_dump($querySQL);
             if($this->m_conn==null)
             {               
-                throw new CDbException("æ•°æ®åº“æœªè¿æ¥",EXCODE_DB_NOT_CONNECTED);             
+                throw new CDbException("Êı¾İ¿âÎ´Á¬½Ó",EXCODE_DB_NOT_CONNECTED);             
             }
             
             $query = sqlsrv_query($this->m_conn, $querySQL);
             CDbException::TrackDbErrors();
             if(!$query):
-                throw new CDbException("æŸ¥è¯¢å‘ç”Ÿé”™è¯¯ã€‚ SQL:$querySQL");
+                throw new CDbException("²éÑ¯·¢Éú´íÎó¡£ SQL:$querySQL");
             endif;            
             while($row = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC))
             {
@@ -142,11 +142,11 @@ class CDbConn
             print_r($ex->toString());
             CErrorLog::errorLogFile($querySQL);
             CErrorLog::errorLogFile($ex->toString());
-            //å¦‚æœæ˜¯é€šè®¯é“¾è·¯ä¸­æ–­å¼•èµ·ï¼Œéœ€è¦é‡è¿æ•°æ®åº“
+            //Èç¹ûÊÇÍ¨Ñ¶Á´Â·ÖĞ¶ÏÒıÆğ£¬ĞèÒªÖØÁ¬Êı¾İ¿â
             if($ex->getCode() == 10054):
                 $this->reconnDB();
             endif;
-            if($ex->getCode() == 1000)://æ•°æ®åº“æœªè¿æ¥
+            if($ex->getCode() == 1000)://Êı¾İ¿âÎ´Á¬½Ó
                 $this->connDB();
             endif;              
         }
@@ -162,21 +162,21 @@ class CDbConn
         return $num;
     }
 
-//æ‰§è¡Œæ— è¿”å›çš„æ•°æ®åº“æŸ¥è¯¢
+//Ö´ĞĞÎŞ·µ»ØµÄÊı¾İ¿â²éÑ¯
     public function execSQL($querySQL)
     {
         try
         {
             if($this->m_conn==null)
             {
-                throw new Exception("æ•°æ®åº“æœªè¿æ¥");
+                throw new Exception("Êı¾İ¿âÎ´Á¬½Ó");
             }
             var_dump($querySQL);
             //var_dump($querySQL, $Param);
             $ret = sqlsrv_query($this->m_conn, $querySQL); 
             CDbException::TrackDbErrors();
             if(!$ret):
-                throw new CDbException("è¯­å¥æ‰§è¡Œå¤±è´¥SQL:$querySQL");
+                throw new CDbException("Óï¾äÖ´ĞĞÊ§°ÜSQL:$querySQL");
             endif;
         }
         catch(CDbException $ex)
@@ -193,7 +193,7 @@ class CDbConn
 
         return true;
     }
-//æ–­å¼€æ•°æ®åº“è¿æ¥ï¿½ï¿½
+//¶Ï¿ªÊı¾İ¿âÁ¬½Ó??
     public function disConn()
     {	
         try
@@ -206,7 +206,7 @@ class CDbConn
             }	
             else
             {
-                throw new CDbException("æ•°æ®åº“æœªè¿æ¥");
+                throw new CDbException("Êı¾İ¿âÎ´Á¬½Ó");
             }
         }
         catch(CDbException $ex)

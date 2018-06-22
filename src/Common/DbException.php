@@ -35,7 +35,7 @@ class CDbException extends Exception{
     }
     
         // Overrideable
-    public function toString()               // å¯è¾“å‡ºçš„å­—ç¬¦ä¸²
+    public function toString()               // ¿ÉÊä³öµÄ×Ö·û´®
     {
         return __CLASS__ . ": ($this->state) [{$this->code}]: <$this->message>\n";  
     }

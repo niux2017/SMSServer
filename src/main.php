@@ -6,10 +6,10 @@ require_once "/works/smssendwork.php";
 require_once "/common/ErrorLog.php";
 
 
-//åˆ›å»ºæ•°æ®åº“æŸ¥è¯¢çº¿ç¨‹ã€å¯åŠ¨
+//´´½¨Êı¾İ¿â²éÑ¯Ïß³Ì¡¢Æô¶¯
 $g_dbQueryWork = new CDbQueryWork();
 $g_smsManger = new CDataArrayManager() ;
-//åˆ›å»ºçŸ­ä¿¡å‘é€çº¿ç¨‹
+//´´½¨¶ÌĞÅ·¢ËÍÏß³Ì
 $g_smsSendWork = new CSmsSendWork();
 
 register_shutdown_function("CErrorLog::catch_error");
@@ -18,7 +18,7 @@ set_error_handler("CErrorLog::throw_exception");
 class CSMSServer
 {
 	
-//å¯åŠ¨çº¿ç¨‹
+//Æô¶¯Ïß³Ì
     public function startWorks()
     {
         try
@@ -26,7 +26,7 @@ class CSMSServer
             global $g_dbQueryWork;
             global $g_smsSendWork;
            
-            //å¯åŠ¨çº¿ç¨‹
+            //Æô¶¯Ïß³Ì
             $g_dbQueryWork->start();
             $g_smsSendWork->start();
 
