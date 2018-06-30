@@ -53,7 +53,10 @@ class CSmsSendWork extends CBaseWork {
     public function start() {
 
         $this->xml = simplexml_load_file(dirname(__FILE__)."/sms.xml");
+        //$this->soap_client = new SoapClient("http://172.30.0.81/WebService1.asmx?wsdl");
         $this->soap_client = new SoapClient("http://172.30.35.108/dxptfb/WebService1.asmx?wsdl");
+        //$this->soap_client = new SoapClient("WebService2.wsdl");
+        //$this->soap_client = new SoapClient("WebService1.wsdl"); 
     }
 
     /*     * ********************************************************
@@ -72,24 +75,35 @@ class CSmsSendWork extends CBaseWork {
         }
         $strDate =  $drawdate->format("Y-m-d");
         $this->xml->phones = $phone;
-        $this->xml->content = "亲，您于 $strDate 在附三院的检验报告已发出，请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
+        $gb2312content = "亲，您于 $strDate 在附三院的检验报告已发出，请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
+        $this->xml->content  = iconv("gb2312","utf-8//IGNORE",$gb2312content);
         $xmlstr = $this->xml->asXML();
-        var_dump($xmlstr);
-        if (FALSE != $xmlstr):
-            $rtStr = $this->soap_client->dxptsubmit($xmlstr);                          
-            $rtXML = new SimpleXMLElement($rtStr);
-            if ($rtXML->issuccess)
-                return TRUE;
-            CErrorLog::errorLogFile("[$rtXML->response->result]:<$rtXML->tsxx >");
+        //var_dump($xmlstr);
+        if (FALSE != $xmlstr):      
+            try
+            {          
+                $param = array('message' => $xmlstr);
+                //$rtStr = $this->soap_client->Hello($param); 
+                $rtStr = $this->soap_client->dxptsubmit($param); 
+                
+                $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);
+                var_dump($rtUTF8XML);
+                $rtGB2312XML = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->content);
+                var_dump($rtGB2312XML);
+              
+                if ($rtUTF8XML->issuccess != 'true'):
+                    CErrorLog::errorLogFile("[$rtUTF8XML->response->result]:<$rtUTF8XML->tsxx >");
+                    return FALSE;          
+                endif;
+            }           
+            catch(SOAPFault $e)
+            {
+                print($e->getMessage());
+            }                  
         endif;
 
         return false;
     }
 
 }
-
-//$test = new CSmsSendWork();
-//$test->start();
-//$test->sendSMS("13340397452", "2018年06月15日");
-//$test->_soapCall('Add',array(1000,2));
 ?>
