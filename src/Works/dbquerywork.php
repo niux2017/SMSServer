@@ -94,7 +94,7 @@ class CDbQueryWork extends CBaseWork {
         $ret = $this->dbConn->querySQL("exec usp_cyfsy_query_dfsdx $this->maxid", $phoneList);
 	if($ret):
             foreach ($phoneList as $row):
-                $phone = array('phone'=>$row['phone'], 'drawdate'=>$row['drawdate']);
+                $phone = array('phone'=>$row['phone'], 'drawdate'=>$row['drawdate'], 'ReportID'=>$row['ReportID'], 'RemainderReports'=>$row['RemainderReports']);
                 //号码存入全局队列
                 $g_smsManger->pushArrayData($row["id"], $phone);
                 if($row["id"] > $this->maxid):
@@ -103,6 +103,31 @@ class CDbQueryWork extends CBaseWork {
             endforeach;
         endif;
     }	
+    
+       /**********************************************************
+*名称：queryReportItems
+*作者：NIUX
+*功能：
+1、读取数据库，查询报告的项目名称
+*参数：报告的编号
+*返回值：该报告对应的项目的名称
+*创建时间：20180704
+***********************************************************/	
+    public function queryReportItems($ApplyNo)
+    {
+        $results = array();
+        $ret = $this->dbConn->querySQL("exec usp_cyfsy_jybg_getreportinfo $ApplyNo", $results);
+        $itemnames = '';
+        
+        if($ret):
+            foreach($results as $result):
+                $itemnames .= $result['HisOrderName'];
+                $itemnames .='、';
+            endforeach;
+            rtrim($itemnames, '、');//删除掉末尾多余的顿号，若无则不管
+        endif;
+        unset($results);       
+        return $itemnames;
+    }
 }
-
 ?>

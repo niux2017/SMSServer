@@ -26,8 +26,10 @@ class CSmsSendWork extends CBaseWork {
         try {
             global $g_smsManger;
             global $g_dbQueryWork;
-            while ($g_smsManger->shiftArrayData($id, $array)):          
-                $ret = $this->sendSMS($array["phone"], $array["drawdate"]);
+            $ret = FALSE;
+            while ($g_smsManger->shiftArrayData($id, $array)):  
+                $itemNames = $g_dbQueryWork->queryReportItems($array['ReportID']);
+                $ret = $this->sendSMS($array["phone"], $array["drawdate"], $itemNames, $array['RemainderReports']);
                 //发送成功，从队列中移除该任务
                 if ($ret):
                     //发送成功后, 将消息存放在报告查询队列中，并改写数据库状态
@@ -63,11 +65,11 @@ class CSmsSendWork extends CBaseWork {
      * 名称：sendSMS
      * 作者：NIUX
      * 功能：调用SOAP接口，发送通知短信
-     * 参数：$phone 手机号, $drawdate 抽血日期
+     * 参数：$phone 手机号, $drawdate 抽血日期 $ItemNames 项目名称, $remainderReports 剩余报告数
      * 创建时间：20180611
      * ********************************************************* */
 
-    public function sendSMS($phone, $drawdate) {
+    public function sendSMS($phone, $drawdate, $ItemNames, $remainderReports) {
 
         if(null == $this->xml || null == $this->soap_client)
         {
@@ -75,7 +77,7 @@ class CSmsSendWork extends CBaseWork {
         }
         $strDate =  $drawdate->format("Y-m-d");
         $this->xml->phones = $phone;
-        $gb2312content = "亲，您于 $strDate 在附三院的检验报告已发出，请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
+        $gb2312content = "亲，您于 $strDate 在附三院的检验报告 $ItemNames 已发出（还剩余 $remainderReports 份报告未出），请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
         $this->xml->content  = iconv("gb2312","utf-8//IGNORE",$gb2312content);
         $xmlstr = $this->xml->asXML();
         //var_dump($xmlstr);
