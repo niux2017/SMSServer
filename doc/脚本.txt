@@ -1,3 +1,24 @@
+USE DBLIS50_TEST 
+go
+
+
+drop trigger [tri_cyfsy_after_ordermaster_delete]
+drop trigger [tri_cyfsy_after_ordermaster_insert]
+drop trigger [tri_cyfsy_after_list_update]
+drop trigger [tri_cyfsy_after_tmzt_insert]
+drop trigger [tri_cyfsy_after_tmzt_update]
+drop procedure [usp_cyfsy_query_dfsdx]
+drop procedure [usp_cyfsy_jybg_getreportinfo]
+
+/****** Object:  Trigger [dbo].[tri_cyfsy_after_ordermaster_delete]    Script Date: 07/04/2018 20:07:02 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
 -----------------------------------------------------------------------------------触发器------------------------------------------------------------------------
 
 /**************************************************************
@@ -8,8 +29,8 @@
 修改记录：
 ***************************************************************/
 
-alter trigger tri_cyfsy_after_ordermaster_insert
-on DBLIS50_TEST.dbo.Lis_OrderMaster
+CREATE trigger [dbo].[tri_cyfsy_after_ordermaster_insert]
+on [DBLIS50_TEST].[dbo].[Lis_OrderMaster]
 after insert 
 as
 	
@@ -33,17 +54,11 @@ begin
     close cur_Insert  
     deallocate cur_Insert  
 end
-
-
-USE [DBLIS50_TEST]
 GO
 
-/****** Object:  Trigger [dbo].[tri_cyfsy_after_ordermaster_delete]    Script Date: 07/04/2018 20:07:02 ******/
-SET ANSI_NULLS ON
-GO
 
-SET QUOTED_IDENTIFIER ON
-GO
+
+
 
 /**************************************************************
 作者：NIUX
@@ -84,63 +99,16 @@ GO
 
 
 
-USE [DBLIS50_TEST]
-GO
-
-/****** Object:  Trigger [dbo].[tri_cyfsy_after_ordermaster_insert]    Script Date: 07/04/2018 20:07:57 ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-/**************************************************************
-作者：NIUX
-名称：tri_cyfsy_after_ordermaster_insert
-创建日期：20180602
-功能：触发器 当Lis_OrderMaster有插入发生时， 将插入的记录插入到CYFSY_SMS_TMZT表
-修改记录：
-***************************************************************/
-
-CREATE trigger [dbo].[tri_cyfsy_after_ordermaster_insert]
-on [DBLIS50_TEST].[dbo].[Lis_OrderMaster]
-after insert 
-as
-	
-begin 
-	declare @phone varchar(20)
-	declare @orderdate datetime
-	 
-    /*一些操作*/  
-    declare cur_Insert cursor  for /*申明游标*/  
-        select M_Phone phone,OrderDate orderdate  from inserted where  WardOrReg = 0 and isnull(M_Phone, '')<>'' and WardOrReg = 0--排除住院和体检的， 只找有手机号的
-            open cur_Insert  
-                fetch next from cur_Insert into @phone,@orderdate    
-               
-        while @@FETCH_STATUS =0  
-            begin  
-                /*一些操作*/  
-                insert into [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT(Phone,DrawDate,DrawCount,ReportCount) values(@phone,@orderdate, 1, 0)   
-                fetch next from cur_Insert into @phone,@orderdate 
-                --插入到短信发送状态表				          
-            end  
-    close cur_Insert  
-    deallocate cur_Insert  
-end
-GO
-
-
-
-
 /**************************************************************
 作者：NIUX
 名称：tri_cyfsy_after_list_update
 创建日期：20180602
 功能：触发器 当Lis_List有报告发布时（PubDateTime会更新）， 将更新的记录插入到CYFSY_SMS_TMZT表
 修改记录：
+20180704 报告更改时，往TMZT表插入applyno
 ***************************************************************/
 
-alter trigger [dbo].[tri_cyfsy_after_list_update]
+CREATE trigger [dbo].[tri_cyfsy_after_list_update]
 on [DBLIS50_TEST].[dbo].[Lis_List]
 after update 
 as
@@ -155,22 +123,54 @@ begin
 	--取得更新前报告结果状态
 	select @phone= M_Phone ,@ordertime = SampleTime , @oldstatus = [status], @reportid = ApplyNo  from deleted where  WardOrReg = 0 and isnull(M_Phone, '')<>'' and WardOrReg = 0--排除住院和体检的， 只找有手机号的
 	--取得更新后报告结果状态
-    select @phone = M_Phone ,@ordertime = SampleTime , @newstatus = [status]  from inserted where  WardOrReg = 0 and isnull(M_Phone, '')<>'' and WardOrReg = 0--排除住院和体检的， 只找有手机号的
+    select @phone = M_Phone ,@ordertime = SampleTime , @newstatus = [status], @reportid = ApplyNo  from inserted where  WardOrReg = 0 and isnull(M_Phone, '')<>'' and WardOrReg = 0--排除住院和体检的， 只找有手机号的
           
 	declare @orderdate varchar(100) --抽血日期
 	set @orderdate = convert(varchar(100), @ordertime, 112) 
     /*--更新短信发送状态表	*/
     if @newstatus = 4 and @oldstatus = 3 --报告是由审核到发布状态，报告数加1
       begin
-		update  [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount + 1 where Phone = @phone and DrawDate = @orderdate   
+		update  [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount + 1, LatestReportID = @reportid where Phone = @phone and DrawDate = @orderdate   
       end
     else if @newstatus = 3 and @oldstatus = 4 --报告是由发布到审核状态,报告数减1
 		begin
 		update  [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount - 1, LatestReportID = @reportid where Phone = @phone and DrawDate = @orderdate   
 		end
 end
+
+
 GO
 
+/**************************************************************
+作者：NIUX
+名称：tri_cyfsy_after_tmzt_insert
+创建日期：20180602
+功能：触发器 当CYFSY_SMS_TMZT有插入发生时，触发CYFSY_SMS_FSJL的插入或者更新操作。
+将短信通知记录插入到CYFSY_SMS_FSJL（短信记录）表中
+修改记录：
+***************************************************************/
+CREATE trigger [dbo].[tri_cyfsy_after_tmzt_insert]
+on [DBLIS50_TEST].[dbo].[CYFSY_SMS_TMZT]
+instead of insert 
+as
+	
+begin 
+	declare @phone varchar(20)
+	declare @drawdate datetime
+	declare @inscount int --插入的数量
+	 
+	select @phone = Phone, @drawdate = DrawDate , @inscount = DrawCount from inserted 
+    /*判断记录是否存在*/  
+    if exists (select 1 from CYFSY_SMS_TMZT where Phone = @phone and DrawDate = @drawdate)
+    begin
+		update CYFSY_SMS_TMZT set DrawCount = DrawCount + @inscount where Phone = @phone and DrawDate = @drawdate
+    end
+    else
+    begin
+		insert into CYFSY_SMS_TMZT (Phone, DrawDate, DrawCount, ReportCount) values(@phone, @drawdate, @inscount, 0) 
+    end
+end
+GO
 
 /**************************************************************
 作者：NIUX
@@ -180,7 +180,7 @@ GO
 将短信通知记录插入到CYFSY_SMS_FSJL（短信记录）表中
 修改记录：
 ***************************************************************/
-ALTER trigger [dbo].[tri_cyfsy_after_tmzt_update]
+CREATE trigger [dbo].[tri_cyfsy_after_tmzt_update]
 on [DBLIS50_TEST].[dbo].[CYFSY_SMS_TMZT]
 after update 
 as
@@ -190,59 +190,60 @@ begin
 	declare @drawdate datetime
 	declare @newreportcount int --插入的数量
 	declare @barcount int --条码数量
+	declare @reportid int --报告ID
+	declare @remainderreport int --剩余报告数量 
 	 
-	select @phone = Phone, @drawdate = DrawDate , @newreportcount = ReportCount,  @barcount = DrawCount from inserted 
-    if (@newreportcount = @barcount)
+	select @phone = Phone, @drawdate = DrawDate , @newreportcount = ReportCount,  @barcount = DrawCount ,
+	@remainderreport = DrawCount - ReportCount, @reportid = LatestReportID
+	from inserted 
+    if (@barcount > 0 and @newreportcount > 0 and @reportid is not null) --已有报告发出之后才发送短信
     begin
-		insert into CYFSY_SMS_FSJL (Phone, DrawDate, FSZT) values(@phone, @drawdate, 0)
+		insert into CYFSY_SMS_FSJL (Phone, DrawDate, FSZT, ReportID, RemainderReports) values(@phone, @drawdate, 0, @reportid, @remainderreport)
     end    
 end
 
-GO
 
 ----------------------------------------------------------------------------存储过程-------------------------------------------------------------------------------
     
-/********************************************************    
-名称：usp_cyfsy_query_dfsdx    
-功能：获取待发送短信    
-作者:NIUX    
-创建时间：20180611    
-********************************************************/    
-CREATE procedure [dbo].[usp_cyfsy_query_dfsdx]    
-@maxid int    
-    
-as    
-begin      
- if @maxid = 0    
- begin      
-  select id [id], Phone phone, DrawDate drawdate, ReportID,RemainderReports  from CYFSY_SMS_FSJL where id>@maxid    
- and FSZT in (0, 2) --如果为0，则把失败的也重发一遍    
- end    
- else if @maxid > 0    
- begin     
-  select id [id], Phone phone, DrawDate drawdate, ReportID,RemainderReports from CYFSY_SMS_FSJL where id>@maxid    
-  and FSZT  = 0--如果入参大于0，则只发等待发送的    
- end    
-     
-end    
 
-/********************************************************
-名称：usp_cyfsy_sms_update_stat
-功能：更改短信发送结果 
-作者:NIUX
-创建时间：20180611
-********************************************************/
-alter procedure [dbo].[usp_cyfsy_sms_update_stat]
-@id int,
-@stat int
 
-as
-begin 	
-	update CYFSY_SMS_FSJL set FSSJ = GETDATE(), FSZT = @stat where id = @id
-	
-end
 
+/****** Object:  StoredProcedure [dbo].[usp_cyfsy_query_dfsdx]    Script Date: 07/09/2018 09:40:02 ******/
+SET ANSI_NULLS ON
 GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+  
+/********************************************************  
+名称：usp_cyfsy_query_dfsdx  
+功能：获取待发送短信  
+作者:NIUX  
+创建时间：20180611  
+********************************************************/  
+create procedure [dbo].[usp_cyfsy_query_dfsdx]  
+@maxid int  
+  
+as  
+begin    
+ if @maxid = 0  
+ begin    
+  select id [id], Phone phone, DrawDate drawdate, ReportID,RemainderReports  from CYFSY_SMS_FSJL where id>@maxid and ISNULL(Phone, '') <> '' 
+ and FSZT in (0, 2) --如果为0，则把失败的也重发一遍  
+ end  
+ else if @maxid > 0  
+ begin   
+  select id [id], Phone phone, DrawDate drawdate, ReportID,RemainderReports from CYFSY_SMS_FSJL where id>@maxid  and ISNULL(Phone, '') <> ''
+  and FSZT  = 0--如果入参大于0，则只发等待发送的  
+ end  
+   
+end  
+  
+GO
+
+
+
 
       
  /**********************************************************************      

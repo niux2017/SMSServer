@@ -77,7 +77,7 @@ class CSmsSendWork extends CBaseWork {
         }
         $strDate =  $drawdate->format("Y-m-d");
         $this->xml->phones = $phone;
-        $gb2312content = "亲，您于 $strDate 在附三院的检验报告 $ItemNames 已发出（还剩余 $remainderReports 份报告未出），请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
+        $gb2312content = "亲，您于 $strDate 在附三院的检验报告 【$ItemNames】 已发出（还剩余 $remainderReports 份报告未出），请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
         $this->xml->content  = iconv("gb2312","utf-8//IGNORE",$gb2312content);
         $xmlstr = $this->xml->asXML();
         //var_dump($xmlstr);
@@ -85,14 +85,12 @@ class CSmsSendWork extends CBaseWork {
             try
             {          
                 $param = array('message' => $xmlstr);
-                //$rtStr = $this->soap_client->Hello($param); 
-                $rtStr = $this->soap_client->dxptsubmit($param); 
-                
+                $rtStr = $this->soap_client->dxptsubmit($param);                
                 $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);
                 var_dump($rtUTF8XML);
                 $rtGB2312XML = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->content);
-                var_dump($rtGB2312XML);
-              
+                var_dump($rtGB2312XML);             
+                
                 if ($rtUTF8XML->issuccess != 'true'):
                     CErrorLog::errorLogFile("[$rtUTF8XML->response->result]:<$rtUTF8XML->tsxx >");
                     return FALSE;          
@@ -100,7 +98,7 @@ class CSmsSendWork extends CBaseWork {
             }           
             catch(SOAPFault $e)
             {
-                print($e->getMessage());
+                CErrorLog::errorLogFile($e->getMessage());
             }                  
         endif;
 
