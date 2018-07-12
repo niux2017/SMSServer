@@ -100,6 +100,7 @@ class CSmsSendWork extends CBaseWork {
                 CErrorLog::errorLogFile($e->getMessage());
                 CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
                 CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$rtGB2312XML);
+                return FALSE;
             }                  
         endif;
 
