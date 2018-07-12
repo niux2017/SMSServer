@@ -80,32 +80,26 @@ class CSmsSendWork extends CBaseWork {
         $gb2312content = "亲，您于 $strDate 在附三院的检验报告【 $ItemNames 】已发出（还剩余 $remainderReports 份报告未出），请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
         $this->xml->content  = iconv("gb2312","utf-8//IGNORE",$gb2312content);
         $xmlstr = $this->xml->asXML();
-        //var_dump($xmlstr);
+        //var_dump($this->xml);
         if (FALSE != $xmlstr):      
             try
             {          
                 $param = array('message' => $xmlstr);
                 $rtStr = $this->soap_client->dxptsubmit($param);                
                 $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);
-                var_dump($rtUTF8XML);
-                $rtGB2312XML = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->content);
-                var_dump($rtGB2312XML);             
-                
-                if ($rtUTF8XML->issuccess != 'true'):
-                    $tsxx = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->tsxx);
-                    $response = $rtUTF8XML->response;
-                    $result;
-                    if(null != $response):
-                        $result = $response->result;
-                    endif;                    
-                    CErrorLog::errorLogFile("[$result]:<$tsxx>");
+                $rtGB2312XML = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->asXML());
+                var_dump($rtGB2312XML);                           
+                if ($rtUTF8XML->issuccess != 'true'):                
+                    CErrorLog::errorLogFile("failed! Request XML Coontent is:\n".$xmlstr);
+                    CErrorLog::errorLogFile("failed! Response XML Coontent is:\n".$rtGB2312XML);
                     return FALSE;          
                 endif;
             }           
             catch(SOAPFault $e)
             {
-                CErrorLog::errorLogFile("XML Coontent is:".$xmlstr);
                 CErrorLog::errorLogFile($e->getMessage());
+                CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
+                CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$rtGB2312XML);
             }                  
         endif;
 
