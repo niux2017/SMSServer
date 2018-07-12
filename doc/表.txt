@@ -1,4 +1,4 @@
-USE [DBLIS50_TEST]
+USE [DBLIS50]
 GO
 
 /****** Object:  Table [dbo].[CYFSY_SMS_TMZT]    Script Date: 06/02/2018 23:28:26 ******/
@@ -25,7 +25,7 @@ SET ANSI_PADDING OFF
 GO
 
 
-USE [DBLIS50_TEST]
+USE [DBLIS50]
 GO
 
 /****** Object:  Table [dbo].[CYFSY_SMS_TMZT]    Script Date: 06/02/2018 23:28:26 ******/
@@ -61,7 +61,7 @@ GO
 
 
 ----------------------------------------Ë÷Òý-----------------------------------------------
-USE [DBLIS50_TEST]
+USE [DBLIS50]
 GO
 
 /****** Object:  Index [idx_phone_and_drawdate]    Script Date: 06/06/2018 12:54:43 ******/
@@ -71,6 +71,3 @@ CREATE NONCLUSTERED INDEX [idx_phone_and_drawdate] ON [dbo].[CYFSY_SMS_TMZT]
 	[DrawDate] ASC
 )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
 GO
-
-
-

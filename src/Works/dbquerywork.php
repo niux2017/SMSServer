@@ -72,7 +72,7 @@ class CDbQueryWork extends CBaseWork {
 ***********************************************************/	
    public function start() {
        
-       $this->dbConn->initParam("172.30.0.35\LIS","SMS_AUTO_NOTIFY","SMS_AUTO_NOTIFY", "DBLIS50_TEST");
+       $this->dbConn->initParam("172.30.0.35\LIS","SMS_AUTO_NOTIFY","SMS_AUTO_NOTIFY", "DBLIS50");
        $this->dbConn->connDB();
        var_dump($this->dbConn);
    }
@@ -122,9 +122,9 @@ class CDbQueryWork extends CBaseWork {
         if($ret):
             foreach($results as $result):
                 $itemnames .= $result['HisOrderName'];
-                $itemnames .='、';
+                $itemnames .="、";
             endforeach;
-            rtrim($itemnames, '、');//删除掉末尾多余的顿号，若无则不管
+            rtrim($itemnames, "、");//删除掉末尾多余的顿号，若无则不管
         endif;
         unset($results);       
         return $itemnames;

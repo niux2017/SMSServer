@@ -1,4 +1,4 @@
-USE DBLIS50_TEST 
+USE DBLIS50 
 go
 
 
@@ -30,7 +30,7 @@ GO
 ***************************************************************/
 
 CREATE trigger [dbo].[tri_cyfsy_after_ordermaster_insert]
-on [DBLIS50_TEST].[dbo].[Lis_OrderMaster]
+on [DBLIS50].[dbo].[Lis_OrderMaster]
 after insert 
 as
 	
@@ -47,7 +47,7 @@ begin
         while @@FETCH_STATUS =0  
             begin  
                 /*一些操作*/  
-                insert into [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT(Phone,DrawDate,DrawCount,ReportCount) values(@phone,@orderdate, 1, 0)   
+                insert into [DBLIS50].dbo.CYFSY_SMS_TMZT(Phone,DrawDate,DrawCount,ReportCount) values(@phone,@orderdate, 1, 0)   
                 fetch next from cur_Insert into @phone,@orderdate 
                 --插入到短信发送状态表				          
             end  
@@ -68,7 +68,7 @@ GO
 ***************************************************************/
 
 CREATE  trigger [dbo].[tri_cyfsy_after_ordermaster_delete]
-on [DBLIS50_TEST].[dbo].[Lis_OrderMaster]
+on [DBLIS50].[dbo].[Lis_OrderMaster]
 after delete 
 as
 	
@@ -89,7 +89,7 @@ begin
             --print    @orderdate
                 /*一些操作*/ 
                 --更改CYFSY_SMS_TMZT                
-				update  [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT set DrawCount = DrawCount-1 where Phone = @phone and DrawDate = @orderdate   
+				update  [DBLIS50].dbo.CYFSY_SMS_TMZT set DrawCount = DrawCount-1 where Phone = @phone and DrawDate = @orderdate   
                 fetch next from cur_Del into @phone,@orderdate           
             end  
     close cur_Del  
@@ -109,7 +109,7 @@ GO
 ***************************************************************/
 
 CREATE trigger [dbo].[tri_cyfsy_after_list_update]
-on [DBLIS50_TEST].[dbo].[Lis_List]
+on [DBLIS50].[dbo].[Lis_List]
 after update 
 as
 	
@@ -130,11 +130,11 @@ begin
     /*--更新短信发送状态表	*/
     if @newstatus = 4 and @oldstatus = 3 --报告是由审核到发布状态，报告数加1
       begin
-		update  [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount + 1, LatestReportID = @reportid where Phone = @phone and DrawDate = @orderdate   
+		update  [DBLIS50].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount + 1, LatestReportID = @reportid where Phone = @phone and DrawDate = @orderdate   
       end
     else if @newstatus = 3 and @oldstatus = 4 --报告是由发布到审核状态,报告数减1
 		begin
-		update  [DBLIS50_TEST].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount - 1, LatestReportID = @reportid where Phone = @phone and DrawDate = @orderdate   
+		update  [DBLIS50].dbo.CYFSY_SMS_TMZT set ReportCount = ReportCount - 1, LatestReportID = @reportid where Phone = @phone and DrawDate = @orderdate   
 		end
 end
 
@@ -150,7 +150,7 @@ GO
 修改记录：
 ***************************************************************/
 CREATE trigger [dbo].[tri_cyfsy_after_tmzt_insert]
-on [DBLIS50_TEST].[dbo].[CYFSY_SMS_TMZT]
+on [DBLIS50].[dbo].[CYFSY_SMS_TMZT]
 instead of insert 
 as
 	
@@ -181,7 +181,7 @@ GO
 修改记录：
 ***************************************************************/
 CREATE trigger [dbo].[tri_cyfsy_after_tmzt_update]
-on [DBLIS50_TEST].[dbo].[CYFSY_SMS_TMZT]
+on [DBLIS50].[dbo].[CYFSY_SMS_TMZT]
 after update 
 as
 	
@@ -265,10 +265,45 @@ GO
           
   end 
 
+
+USE [DBLIS50]
+GO
+
+/****** Object:  StoredProcedure [dbo].[usp_cyfsy_sms_update_stat]    Script Date: 07/11/2018 16:45:04 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+/********************************************************
+名称：usp_cyfsy_sms_update_stat
+功能：更改短信发送结果 
+作者:NIUX
+创建时间：20180611
+********************************************************/
+CREATE procedure [dbo].[usp_cyfsy_sms_update_stat]
+@id int,
+@stat int
+
+as
+begin 	
+	update CYFSY_SMS_FSJL set FSSJ = GETDATE(), FSZT = @stat where id = @id
+	
+end
+
+
+GO
+
+
+
+
+
+
 --------------------------------------------------------------------------创建数据库账户--------------------------------------------------------------------------
 /* For security reasons the login is created disabled and with a random password. */
 /****** Object:  Login [SMS_AUTO_NOTIFY]    Script Date: 06/11/2018 21:31:38 ******/
-CREATE LOGIN [SMS_AUTO_NOTIFY] WITH PASSWORD=N'SMS_AUTO_NOTIFY', DEFAULT_DATABASE=[DBLIS50_TEST], DEFAULT_LANGUAGE=[简体中文], CHECK_EXPIRATION=OFF, CHECK_POLICY=ON
+CREATE LOGIN [SMS_AUTO_NOTIFY] WITH PASSWORD=N'SMS_AUTO_NOTIFY', DEFAULT_DATABASE=[DBLIS50], DEFAULT_LANGUAGE=[简体中文], CHECK_EXPIRATION=OFF, CHECK_POLICY=ON
 GO
 
 ALTER LOGIN [SMS_AUTO_NOTIFY] DISABLE
