@@ -44,13 +44,8 @@ class CErrorLog {
     //回调函数，将错误当成异常抛出 
     public static function throw_exception($type, $message, $file, $line){
         $ExString = "[Type] $type [File] $file [Line] $line [Message] $message"; 
-        CErrorLog::errorLogFile($ExString);
-        
-        //if($type == E_WARNING && !strpos($message,'ftp_fget(): Image Transfer complete')):
-            //throw new CFTPException($message, $line, $file, $type);
-       // else:
-            throw new Exception($ExString);
-        //endif;      
+        CErrorLog::errorLogFile($ExString);    
+        throw new Exception($ExString);            
     }
 }
 

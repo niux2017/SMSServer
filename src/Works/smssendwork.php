@@ -83,6 +83,7 @@ class CSmsSendWork extends CBaseWork {
         $utf8xmlstr = iconv("gb2312","utf-8//IGNORE",$xmlstr);
         //var_dump($this->xml);
         $tsxx = "";
+        $param = array();
         if (FALSE != $xmlstr):      
             try
             {          
@@ -99,14 +100,32 @@ class CSmsSendWork extends CBaseWork {
             }           
             catch(SOAPFault $e)
             {
+                reInitSoap();//重新初始化SOAP接口
+                $this->soap_client->dxptsubmit($param);//再次调用接口
                 CErrorLog::errorLogFile($e->getMessage());
                 CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
                 CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$tsxx);
                 return FALSE;
-            }                  
+            } 
+            catch(Exception $e)
+            {
+                return FALSE;
+            }
         endif;
 
         return true;
+    }
+        /*     * ********************************************************
+     * 名称：reInitSoap
+     * 作者：NIUX
+     * 功能：重新初始化webservice接口
+     * 参数：无
+     * 创建时间：20180716
+     * ********************************************************* */
+
+    public function reInitSoap() {
+        unset($this->soap_client);
+        $this->soap_client = new SoapClient(dirname(__FILE__)."/WebService1.wsdl");      
     }
 
 }
