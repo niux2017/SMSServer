@@ -81,6 +81,7 @@ class CSmsSendWork extends CBaseWork {
         $this->xml->content  = iconv("gb2312","utf-8//IGNORE",$gb2312content);
         $xmlstr = $this->xml->asXML();
         //var_dump($this->xml);
+        $rtGB2312XML = "";
         if (FALSE != $xmlstr):      
             try
             {          
@@ -88,7 +89,7 @@ class CSmsSendWork extends CBaseWork {
                 $rtStr = $this->soap_client->dxptsubmit($param);                
                 $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);
                 $rtGB2312XML = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->asXML());
-                var_dump($rtGB2312XML);                           
+                //var_dump($rtGB2312XML);                           
                 if ($rtUTF8XML->issuccess != 'true'):                
                     CErrorLog::errorLogFile("failed! Request XML Coontent is:\n".$xmlstr);
                     CErrorLog::errorLogFile("failed! Response XML Coontent is:\n".$rtGB2312XML);
