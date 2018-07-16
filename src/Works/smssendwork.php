@@ -78,21 +78,22 @@ class CSmsSendWork extends CBaseWork {
         $strDate =  $drawdate->format("Y-m-d");
         $this->xml->phones = $phone;
         $gb2312content = "亲，您于 $strDate 在附三院的检验报告【 $ItemNames 】已发出（还剩余 $remainderReports 份报告未出），请尽快凭抽血回执单，到门诊A1层检验科自助机上领取， 谢谢！";
-        $this->xml->content  = iconv("gb2312","utf-8//IGNORE",$gb2312content);
+        $this->xml->content  = $gb2312content;
         $xmlstr = $this->xml->asXML();
+        $utf8xmlstr = iconv("gb2312","utf-8//IGNORE",$xmlstr);
         //var_dump($this->xml);
-        $rtGB2312XML = "";
+        $tsxx = "";
         if (FALSE != $xmlstr):      
             try
             {          
-                $param = array('message' => $xmlstr);
+                $param = array('message' => $utf8xmlstr);
                 $rtStr = $this->soap_client->dxptsubmit($param);                
-                $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);
-                $rtGB2312XML = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->asXML());
+                $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);                
                 //var_dump($rtGB2312XML);                           
-                if ($rtUTF8XML->issuccess != 'true'):                
+                if ($rtUTF8XML->issuccess != 'true'):   
+                    $tsxx = iconv("utf-8", "gb2312//IGNORE",$rtUTF8XML->tsxx);
                     CErrorLog::errorLogFile("failed! Request XML Coontent is:\n".$xmlstr);
-                    CErrorLog::errorLogFile("failed! Response XML Coontent is:\n".$rtGB2312XML);
+                    CErrorLog::errorLogFile("failed! Response XML Coontent is:\n".$tsxx);
                     return FALSE;          
                 endif;
             }           
@@ -100,7 +101,7 @@ class CSmsSendWork extends CBaseWork {
             {
                 CErrorLog::errorLogFile($e->getMessage());
                 CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
-                CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$rtGB2312XML);
+                CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$tsxx);
                 return FALSE;
             }                  
         endif;
