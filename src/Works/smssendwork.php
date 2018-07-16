@@ -55,8 +55,8 @@ class CSmsSendWork extends CBaseWork {
     public function start() {
 
         $this->xml = simplexml_load_file(dirname(__FILE__)."/sms.xml");
-        //$this->soap_client = new SoapClient("http://172.30.0.81/WebService1.asmx?wsdl");
-        $this->soap_client = new SoapClient("http://172.30.35.108/dxptfb/WebService1.asmx?wsdl");
+        $this->soap_client = new SoapClient(dirname(__FILE__)."/WebService1.wsdl");
+        //$this->soap_client = new SoapClient("http://172.30.35.108/dxptfb/WebService1.asmx?wsdl");
         //$this->soap_client = new SoapClient("WebService2.wsdl");
         //$this->soap_client = new SoapClient("WebService1.wsdl"); 
     }
