@@ -124,7 +124,7 @@ class CDbQueryWork extends CBaseWork {
                 $itemnames .= $result['HisOrderName'];
                 $itemnames .="、";
             endforeach;
-            rtrim($itemnames, "、");//删除掉末尾多余的顿号，若无则不管
+            $itemnames = rtrim($itemnames, "、");//删除掉末尾多余的顿号，若无则不管
         endif;
         unset($results);       
         return $itemnames;
