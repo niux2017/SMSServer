@@ -60,8 +60,7 @@ class CDbConn
         }
         catch(CDbException $ex)
         {
-            print_r($ex->toString());
-            CErrorLog::errorLogFile("数据库连接失败");            
+            print_r($ex->toString());           
             CErrorLog::errorLogFile($ex->toString());
         }
         catch(Exception $e)
