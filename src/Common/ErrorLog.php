@@ -11,6 +11,7 @@
  *
  * @author Administrator
  */
+require_once 'SoapException.php';
 
 class CErrorLog {
     //put your code here
@@ -44,8 +45,12 @@ class CErrorLog {
     //回调函数，将错误当成异常抛出 
     public static function throw_exception($type, $message, $file, $line){
         $ExString = "[Type] $type [File] $file [Line] $line [Message] $message"; 
-        CErrorLog::errorLogFile($ExString);    
-        throw new Exception($ExString);            
+        CErrorLog::errorLogFile($ExString);
+        if($type == E_NOTICE && FALSE != strpos($message, "errno=10054")):
+            throw new CSoapException($type,$message);
+        else:
+            throw new Exception($ExString);
+        endif;              
     }
 }
 

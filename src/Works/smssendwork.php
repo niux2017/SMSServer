@@ -27,6 +27,9 @@ class CSmsSendWork extends CBaseWork {
             global $g_smsManger;
             global $g_dbQueryWork;
             $ret = FALSE;
+            if($g_smsManger->getArraySize()>0)://有内容才打开连接
+                $this->OpenSoap();
+            endif;
             while ($g_smsManger->shiftArrayData($id, $array)):  
                 $itemNames = $g_dbQueryWork->queryReportItems($array['ReportID']);
                 $ret = $this->sendSMS($array["phone"], $array["drawdate"], $itemNames, $array['RemainderReports']);
@@ -35,10 +38,11 @@ class CSmsSendWork extends CBaseWork {
                     //发送成功后, 将消息存放在报告查询队列中，并改写数据库状态
                     $g_dbQueryWork->updateSMSSendStat($id, SMS_SEND_RESULT_SUCCESS);
                 else:
-                    //$g_remoteFileManager->pushArrayData($this->barcode, $filesArray);	//若发送失败，丢回队列，等待下次上传
+                    //$g_remoteFileManager->pushArrayData($id, $array);	//若发送失败，丢回队列，等待下次上传
                     $g_dbQueryWork->updateSMSSendStat($id, SMS_SEND_RESULT_FAILED);
                 endif;
             endwhile;
+            $this->CloseSoap();//用完后关闭连接
         } catch (Exception $e) {
             print_r("Error message: " . $e->getMessage());
         }
@@ -56,9 +60,6 @@ class CSmsSendWork extends CBaseWork {
 
         $this->xml = simplexml_load_file(dirname(__FILE__)."/sms.xml");
         $this->soap_client = new SoapClient(dirname(__FILE__)."/WebService1.wsdl");
-        //$this->soap_client = new SoapClient("http://172.30.35.108/dxptfb/WebService1.asmx?wsdl");
-        //$this->soap_client = new SoapClient("WebService2.wsdl");
-        //$this->soap_client = new SoapClient("WebService1.wsdl"); 
     }
 
     /*     * ********************************************************
@@ -97,11 +98,16 @@ class CSmsSendWork extends CBaseWork {
                     CErrorLog::errorLogFile("failed! Response XML Coontent is:\n".$tsxx);
                     return FALSE;          
                 endif;
-            }           
+            }   
+            catch(CSoapException $e)
+            {
+                CErrorLog::errorLogFile("短消息发送失败:".$xmlstr);
+                //reInitSoap();//重新初始化SOAP接口
+                //$this->soap_client->dxptsubmit($param);//再次调用接口
+                return FALSE;
+            }
             catch(SOAPFault $e)
             {
-                reInitSoap();//重新初始化SOAP接口
-                $this->soap_client->dxptsubmit($param);//再次调用接口
                 CErrorLog::errorLogFile($e->getMessage());
                 CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
                 CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$tsxx);
@@ -116,17 +122,29 @@ class CSmsSendWork extends CBaseWork {
         return true;
     }
         /*     * ********************************************************
-     * 名称：reInitSoap
+     * 名称：OpenSoap
      * 作者：NIUX
-     * 功能：重新初始化webservice接口
+     * 功能：打开webservice连接
      * 参数：无
      * 创建时间：20180716
      * ********************************************************* */
 
-    public function reInitSoap() {
+    public function OpenSoap() {
         unset($this->soap_client);
-        $this->soap_client = new SoapClient(dirname(__FILE__)."/WebService1.wsdl");      
+        $this->soap_client = new SoapClient(dirname(__FILE__)."/WebService1.wsdl");    
     }
+    
+            /*     * ********************************************************
+     * 名称：CloseSoap
+     * 作者：NIUX
+     * 功能：关闭webservice连接
+     * 参数：无
+     * 创建时间：20180717
+     * ********************************************************* */
 
+    public function CloseSoap() {
+        unset($this->soap_client);      
+    }
+    
 }
 ?>
