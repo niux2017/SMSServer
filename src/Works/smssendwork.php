@@ -13,6 +13,8 @@ require_once (dirname(__FILE__)."/../Common/datamanager.php");
 require_once ("threadbase.php");
 require_once ("constants.php");
 require_once (dirname(__FILE__) . "/../common/ErrorLog.php");
+require_once (dirname(__FILE__) . "/../common/SoapException.php");
+
 class CSmsSendWork extends CBaseWork {
 
     private $soap_client;
