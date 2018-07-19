@@ -116,6 +116,7 @@ class CDbQueryWork extends CBaseWork {
     public function queryReportItems($ApplyNo)
     {
         $results = array();
+        $retValue = array();
         $ret = $this->dbConn->querySQL("exec usp_cyfsy_jybg_getreportinfo $ApplyNo", $results);
         $itemnames = '';
         
@@ -123,11 +124,14 @@ class CDbQueryWork extends CBaseWork {
             foreach($results as $result):
                 $itemnames .= $result['HisOrderName'];
                 $itemnames .="、";
+                $retValue["patname"] = $result["PatName"];
             endforeach;
             $itemnames = rtrim($itemnames, "、");//删除掉末尾多余的顿号，若无则不管
         endif;
-        unset($results);       
-        return $itemnames;
+        unset($results);  
+        $retValue["itemnames"] = $itemnames;
+        
+        return $retValue;
     }
 }
 ?>
