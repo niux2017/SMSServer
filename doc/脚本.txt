@@ -246,24 +246,24 @@ GO
 
 
       
- /**********************************************************************      
- 作者：NIUX      
- 名称：usp_cyfsy_jybg_getreportinfo      
- 创建日期：20180704      
- 功能：获取编号对应的报告信息      
- 参数：@applyno 报告唯一号      
-       
- ************************************************************************/      
-       
- CREATE procedure [dbo].[usp_cyfsy_jybg_getreportinfo]      
- @applyno  int --唯一号      
- as      
-       
- begin       
-      
-  select applyno ,  HisOrderName from Lis_AcceptItems where ApplyNo = @applyno    
-          
-  end 
+ /**********************************************************************        
+ 作者：NIUX        
+ 名称：usp_cyfsy_jybg_getreportinfo        
+ 创建日期：20180704        
+ 功能：获取编号对应的报告信息        
+ 参数：@applyno 报告唯一号        
+         
+ ************************************************************************/        
+create
+  procedure [dbo].[usp_cyfsy_jybg_getreportinfo]        
+ @applyno  int --唯一号        
+ as        
+         
+ begin         
+        
+  select a.applyno ,  a.HisOrderName,  b.PatName  from Lis_AcceptItems a, lis_list b where a.ApplyNo = b.ApplyNo and  a.ApplyNo = @applyno      
+            
+  end   
 
 
 USE [DBLIS50]
