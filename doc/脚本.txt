@@ -220,9 +220,10 @@ GO
 名称：usp_cyfsy_query_dfsdx  
 功能：获取待发送短信  
 作者:NIUX  
-创建时间：20180611  
+创建时间：20180611 
+修改记录：20180801 返回记录按照id排序 
 ********************************************************/  
-create procedure [dbo].[usp_cyfsy_query_dfsdx]  
+CREATE procedure [dbo].[usp_cyfsy_query_dfsdx]  
 @maxid int  
   
 as  
@@ -230,12 +231,12 @@ begin
  if @maxid = 0  
  begin    
   select id [id], Phone phone, DrawDate drawdate, ReportID,RemainderReports  from CYFSY_SMS_FSJL where id>@maxid and ISNULL(Phone, '') <> '' 
- and FSZT in (0, 2) --如果为0，则把失败的也重发一遍  
+ and FSZT in (0, 2) order by id --如果为0，则把失败的也重发一遍   
  end  
  else if @maxid > 0  
  begin   
   select id [id], Phone phone, DrawDate drawdate, ReportID,RemainderReports from CYFSY_SMS_FSJL where id>@maxid  and ISNULL(Phone, '') <> ''
-  and FSZT  = 0--如果入参大于0，则只发等待发送的  
+  and FSZT  = 0 order by id --如果入参大于0，则只发等待发送的  
  end  
    
 end  
