@@ -78,20 +78,21 @@ class CSmsSendWork extends CBaseWork {
         {
             return false;
         }
-        $strDate =  $drawdate->format("Y-m-d");
-        $this->xml->phones = $phone;
-        $itemNames = $results["itemnames"];
-        $patName = $results["patname"];
-        $gb2312content = "尊敬的 $patName 先生/女士，您 $strDate 日的检验【 $itemNames 】已出报告（还剩余 $remainderReports 份报告未出），请凭回执单到门诊A1层检验科自助机上领取， 感谢你的支持！ 【重医大附三院检验科】";
-        $this->xml->content  = $gb2312content;
-        $xmlstr = $this->xml->asXML();
-        $utf8xmlstr = iconv("gb2312","utf-8//IGNORE",$xmlstr);
-        //var_dump($this->xml);
-        $tsxx = "";
-        $param = array();
-        if (FALSE != $xmlstr):      
-            try
-            {          
+        try
+        {  
+            $strDate =  $drawdate->format("m-d");
+            $this->xml->phones = $phone;
+            $itemNames = $results["itemnames"];
+            $patName = $results["patname"];
+            $chenghu = $results['chenghu'];
+            $gb2312content = $patName.$chenghu."，您".$strDate."日的检验【".$itemNames."】已出报告（余".$remainderReports."份未出），请凭回执单领取！ 【检验科】";
+            $this->xml->content  = $gb2312content;
+            $xmlstr = $this->xml->asXML();
+            $utf8xmlstr = iconv("gb2312","utf-8//IGNORE",$xmlstr);
+            //var_dump($this->xml);
+            $tsxx = "";
+            $param = array();
+            if (FALSE != $xmlstr):      
                 $param = array('message' => $utf8xmlstr);
                 $rtStr = $this->soap_client->dxptsubmit($param);                
                 $rtUTF8XML = new SimpleXMLElement($rtStr->dxptsubmitResult);                
@@ -102,27 +103,27 @@ class CSmsSendWork extends CBaseWork {
                     CErrorLog::errorLogFile("failed! Response XML Coontent is:\n".$tsxx);
                     return FALSE;          
                 endif;
-            }   
-            catch(CSoapException $e)
-            {
-                CErrorLog::errorLogFile("短消息发送失败:".$xmlstr);
-                //reInitSoap();//重新初始化SOAP接口
-                //$this->soap_client->dxptsubmit($param);//再次调用接口
-                return FALSE;
-            }
-            catch(SOAPFault $e)
-            {
-                CErrorLog::errorLogFile($e->getMessage());
-                CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
-                CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$tsxx);
-                return FALSE;
-            } 
-            catch(Exception $e)
-            {
-                return FALSE;
-            }
-        endif;
-
+            endif;
+        }
+        catch(CSoapException $e)
+        {
+            CErrorLog::errorLogFile("短消息发送失败:".$xmlstr);
+            //reInitSoap();//重新初始化SOAP接口
+            //$this->soap_client->dxptsubmit($param);//再次调用接口
+            return FALSE;
+        }
+        catch(SOAPFault $e)
+        {
+            CErrorLog::errorLogFile($e->getMessage());
+            CErrorLog::errorLogFile("soap error! Request XML Coontent is:\n".$xmlstr);
+            CErrorLog::errorLogFile("soap error! Response XML Coontent is:\n".$tsxx);
+            return FALSE;
+        } 
+        catch(Exception $e)
+        {
+            return FALSE;
+        }
+       
         return true;
     }
         /*     * ********************************************************
