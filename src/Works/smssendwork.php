@@ -85,7 +85,7 @@ class CSmsSendWork extends CBaseWork {
             $itemNames = $results["itemnames"];
             $patName = $results["patname"];
             $chenghu = $results['chenghu'];
-            $gb2312content = $patName.$chenghu."，您".$strDate."日的检验【".$itemNames."】已出报告（余".$remainderReports."份未出），请凭回执单领取！ 【检验科】";
+            $gb2312content = $patName.$chenghu."，您".$strDate."日的检验【".$itemNames."】已出报告（余".$remainderReports."份未出），请凭回执单到自助机领取！【检验科】";
             $this->xml->content  = $gb2312content;
             $xmlstr = $this->xml->asXML();
             $utf8xmlstr = iconv("gb2312","utf-8//IGNORE",$xmlstr);
