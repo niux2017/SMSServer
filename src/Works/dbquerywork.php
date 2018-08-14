@@ -130,7 +130,10 @@ class CDbQueryWork extends CBaseWork {
                 endif;               
                 if(!isset($retValue['chenghu'])):
                     $retValue['chenghu'] = $result['chenghu'];
-                endif;              
+                endif;     
+                if(!isset($retValue['ogtt']))://OGTT报告的份数
+                    $retValue['ogtt'] = $result['ogtt'];
+                endif;   
             endforeach;
             $itemnames = rtrim($itemnames, "、");//删除掉末尾多余的顿号，若无则不管
         endif;
