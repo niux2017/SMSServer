@@ -131,8 +131,8 @@ class CDbQueryWork extends CBaseWork {
                 if(!isset($retValue['chenghu'])):
                     $retValue['chenghu'] = $result['chenghu'];
                 endif;     
-                if(!isset($retValue['ogtt']))://OGTT报告的份数
-                    $retValue['ogtt'] = $result['ogtt'];
+                if(!isset($retValue['more']))://需要修正的报告份数
+                    $retValue['more'] = $result['more'];
                 endif;   
             endforeach;
             $itemnames = rtrim($itemnames, "、");//删除掉末尾多余的顿号，若无则不管
