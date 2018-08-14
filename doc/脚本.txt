@@ -243,28 +243,34 @@ end
   
 GO
 
+     
+ drop procedure usp_cyfsy_jybg_getreportinfo
+ /**********************************************************************          
+ 作者：NIUX          
+ 名称：usp_cyfsy_jybg_getreportinfo          
+ 创建日期：20180704          
+ 功能：获取编号对应的报告信息          
+ 参数：@applyno 报告唯一号          
+ 修改记录：20180814 因为OGTT的报告会合并,因此抽血的条码数并不能代表报告份数,需要返回一个修正的数值,以便程序对报告份数进行处理    
+ ************************************************************************/          
+CREATE   
+  procedure [dbo].[usp_cyfsy_jybg_getreportinfo]          
+ @applyno  int --唯一号          
+ as          
+           
+ begin           
+ 
+ declare @hospno varchar(20) --病历号
+ declare @more int = 0--多出来的报告份数，需要修正
+ select @hospno = hospno from Lis_List where ApplyNo = @applyno 
+ select @more = COUNT(1)  from Lis_AcceptItems where ApplyNo in (select ApplyNo from Lis_List where HospNo = @hospno)
+ and HisOrderName like 'OGTT%'
+ if(@more > 0)
+     set @more = @more - 1
 
+ select a.applyno ,  a.HisOrderName,  b.PatName, case when b.Sex = 1 then '先生' when b.Sex = 2 then '女士' else '老师' end chenghu, @more more   from Lis_AcceptItems a, lis_list b where a.ApplyNo = b.ApplyNo and  a.ApplyNo = @applyno                  
 
-
-      
- /**********************************************************************        
- 作者：NIUX        
- 名称：usp_cyfsy_jybg_getreportinfo        
- 创建日期：20180704        
- 功能：获取编号对应的报告信息        
- 参数：@applyno 报告唯一号        
-         
- ************************************************************************/        
-create
-  procedure [dbo].[usp_cyfsy_jybg_getreportinfo]        
- @applyno  int --唯一号        
- as        
-         
- begin         
-        
-  select a.applyno ,  a.HisOrderName,  b.PatName  from Lis_AcceptItems a, lis_list b where a.ApplyNo = b.ApplyNo and  a.ApplyNo = @applyno      
-            
-  end   
+end   
 
 
 USE [DBLIS50]
