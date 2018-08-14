@@ -70,6 +70,7 @@ class CSmsSendWork extends CBaseWork {
      * 功能：调用SOAP接口，发送通知短信
      * 参数：$phone 手机号, $drawdate 抽血日期 $results 包含项目名称和患者姓名, $remainderReports 剩余报告数
      * 创建时间：20180611
+     * 修改记录：20180814 根据病人是否有OGTT等项目，智能化调整短信内容中的剩余报告份数
      * ********************************************************* */
 
     public function sendSMS($phone, $drawdate, $results, $remainderReports) {

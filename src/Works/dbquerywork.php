@@ -112,6 +112,7 @@ class CDbQueryWork extends CBaseWork {
 *参数：报告的编号
 *返回值：该报告对应的项目的名称
 *创建时间：20180704
+*修改记录：20180814 返回报告份数的修正 
 ***********************************************************/	
     public function queryReportItems($ApplyNo)
     {
