@@ -172,13 +172,14 @@ begin
 end
 GO
 
+
 /**************************************************************
 作者：NIUX
 名称：tri_cyfsy_after_tmzt_update
 创建日期：20180602
-功能：触发器 当CYFSY_SMS_TMZT有更新发生时，触发操作，判断ReportCount是否等于DrawCount，如果是，则说明报告出完， 触发CYFSY_SMS_TMZT的插入操作。
+功能：触发器 当CYFSY_SMS_TMZT有更新发生时，触发操作，判断ReportCount是否等于DrawCount，如果是，则说明报告出完， 触发CYFSY_SMS_FSJL的插入操作。
 将短信通知记录插入到CYFSY_SMS_FSJL（短信记录）表中
-修改记录：
+修改记录：2018-08-27 触发FSJL表的插入操作机制变为： 只要是有报告发布，就触发插入操作
 ***************************************************************/
 CREATE trigger [dbo].[tri_cyfsy_after_tmzt_update]
 on [DBLIS50].[dbo].[CYFSY_SMS_TMZT]
@@ -192,11 +193,18 @@ begin
 	declare @barcount int --条码数量
 	declare @reportid int --报告ID
 	declare @remainderreport int --剩余报告数量 
+	
+	declare @oldreportcount int --更新之前的报告份数
 	 
+	--提取更新后的报告份数、抽血份数
 	select @phone = Phone, @drawdate = DrawDate , @newreportcount = ReportCount,  @barcount = DrawCount ,
 	@remainderreport = DrawCount - ReportCount, @reportid = LatestReportID
-	from inserted 
-    if (@barcount > 0 and @newreportcount > 0 and @reportid is not null) --已有报告发出之后才发送短信
+	from inserted
+	--提取更新前的报告份数
+	select @oldreportcount = ReportCount from deleted
+	
+	--比较最新的报告份数和更新前的报告份数，如果有新出的报告，才允许插入FSJL表 
+    if (@barcount > 0 and @newreportcount > @oldreportcount and @reportid is not null) --已有报告发出之后才发送短信
     begin
 		insert into CYFSY_SMS_FSJL (Phone, DrawDate, FSZT, ReportID, RemainderReports) values(@phone, @drawdate, 0, @reportid, @remainderreport)
     end    
